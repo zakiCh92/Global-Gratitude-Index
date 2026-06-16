@@ -11,9 +11,6 @@
             font-family: 'Cairo', sans-serif;
             background-color: #05050a;
         }
-        .animate-pulse-slow {
-            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
     </style>
 </head>
 <body class="text-slate-100 min-h-screen relative overflow-x-hidden">
@@ -45,6 +42,7 @@
     </header>
 
     <main class="max-w-5xl mx-auto px-4 py-8 relative z-10">
+        
         <div class="text-center mb-10">
             <h1 class="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-200 to-indigo-400 mb-2 leading-normal">
                 Global Gratitude Scale
@@ -56,7 +54,7 @@
 
         <div id="screen-intro" class="space-y-8">
             <div class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl border border-slate-800 p-6 md:p-10 shadow-2xl text-center space-y-6">
-                <div class="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-2 border border-emerald-500/20 text-emerald-400">
+                <div class="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-2 border border-emerald-500/20 text-emerald-400 text-xl">
                     ✨
                 </div>
                 <h2 class="text-xl md:text-3xl font-bold text-white">هل تساءلت يوماً عن مدى حظك في هذه الدنيا؟</h2>
@@ -64,7 +62,7 @@
                     أغلبنا يركز على ما ينقصه وينسى النعم البديهية التي تمنحه أفضلية مطلقة على ملايين البشر. هذا التطبيق يطرح عليك <span class="text-emerald-400 font-bold">27 سؤالاً دقيقاً</span> يعكس واقع المعيشة العالمي بالأرقام اللاتينية لعام 2026.
                 </p>
                 <div class="pt-4 flex justify-center">
-                    <button onclick="changeScreen('quiz')" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center gap-2 cursor-pointer">
+                    <button id="btn-start-quiz" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center gap-2 cursor-pointer">
                         ⚡ البدء في الحساب الشخصي
                     </button>
                 </div>
@@ -73,24 +71,24 @@
             <div class="space-y-4">
                 <h3 class="text-lg font-bold text-slate-300 flex items-center gap-2">📖 تجرِبة سريعة (أنماط حياة جاهزة للمحاكاة والتعلم)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div onclick="loadPreset(0)" class="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 p-5 rounded-xl cursor-pointer transition-all duration-300 flex flex-col justify-between">
+                    <div id="preset-card-0" class="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 p-5 rounded-xl cursor-pointer transition-all duration-300 flex flex-col justify-between">
                         <div>
                             <div class="text-indigo-400 font-bold text-sm mb-1.5">اللاجئ (منطقة صراع قاسية)</div>
                             <p class="text-xs text-slate-400 leading-relaxed">شخص يعيش في مخيمات النزوح في بيئة تفتقر لأبسط مقومات الأمان والرفاهية المادية.</p>
                         </div>
                         <div class="mt-4 pt-3 border-t border-slate-800 text-left"><span class="text-[10px] bg-indigo-500/10 text-indigo-300 px-2 py-1 rounded">استعراض النتيجة ←</span></div>
                     </div>
-                    <div onclick="loadPreset(1)" class="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 p-5 rounded-xl cursor-pointer transition-all duration-300 flex flex-col justify-between">
+                    <div id="preset-card-1" class="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 p-5 rounded-xl cursor-pointer transition-all duration-300 flex flex-col justify-between">
                         <div>
                             <div class="text-indigo-400 font-bold text-sm mb-1.5">المواطن المتوسط (دولة نامية)</div>
                             <p class="text-xs text-slate-400 leading-relaxed">يعيش في بيئة مستقرة أمنياً ولكن يواجه صعوبات اقتصادية وتحديات في السفر والمدخرات والترفيه.</p>
                         </div>
                         <div class="mt-4 pt-3 border-t border-slate-800 text-left"><span class="text-[10px] bg-indigo-500/10 text-indigo-300 px-2 py-1 rounded">استعراض النتيجة ←</span></div>
                     </div>
-                    <div onclick="loadPreset(2)" class="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 p-5 rounded-xl cursor-pointer transition-all duration-300 flex flex-col justify-between">
+                    <div id="preset-card-2" class="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 p-5 rounded-xl cursor-pointer transition-all duration-300 flex flex-col justify-between">
                         <div>
-                            <div class="text-indigo-400 font-bold text-sm mb-1.5">الموظف الميسور (دولة مستقرة ومتقدمة)</div>
-                            <p class="text-xs text-slate-400 leading-relaxed">يتمتع بأعلى درجات الرفاهية الرقمية، الأمان الوظيفي، والحرية الشخصية العالية.</p>
+                            <div class="text-indigo-400 font-bold text-sm mb-1.5">المواطن الميسور (رفاهية كاملة)</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يتمتع بأعلى درجات الرفاهية الرقمية، الأمان الوظيفي، والحرية الشخصية العالية العالمية.</p>
                         </div>
                         <div class="mt-4 pt-3 border-t border-slate-800 text-left"><span class="text-[10px] bg-indigo-500/10 text-indigo-300 px-2 py-1 rounded">استعراض النتيجة ←</span></div>
                     </div>
@@ -108,39 +106,3 @@
                     <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                         <div id="progress-bar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full transition-all duration-300 w-0"></div>
                     </div>
-                    <div id="category-buttons-container" class="space-y-2"></div>
-                    <div class="pt-2 grid grid-cols-2 gap-2 text-center">
-                        <button onclick="bulkAnswerActiveCategory(true)" class="p-2 bg-slate-950 hover:bg-slate-900 rounded-lg text-[10px] text-slate-300 border border-slate-800 cursor-pointer">نعم للكل</button>
-                        <button onclick="bulkAnswerActiveCategory(false)" class="p-2 bg-slate-950 hover:bg-slate-900 rounded-lg text-[10px] text-slate-300 border border-slate-800 cursor-pointer">لا للكل</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lg:col-span-8 space-y-6">
-                <div id="category-header" class="p-5 rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 text-slate-950 shadow-xl font-black text-lg">
-                    الأساسيات والبقاء
-                </div>
-                <div id="questions-list-container" class="space-y-4"></div>
-                <div class="flex justify-between items-center pt-4 border-t border-slate-900">
-                    <button onclick="changeScreen('intro')" class="px-5 py-3 bg-slate-900 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer">← الرئيسية</button>
-                    <div class="flex gap-2">
-                        <button onclick="autoFillRemainingNo()" class="px-4 py-3 bg-slate-950 text-slate-400 border border-slate-850 text-xs rounded-xl cursor-pointer">اعتبار المتبقي "لا"</button>
-                        <button onclick="changeScreen('results')" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-indigo-600 text-slate-950 font-extrabold text-sm rounded-xl cursor-pointer">عرض التقرير النهائي 🚀</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="screen-results" class="hidden space-y-8">
-            <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 md:p-10 text-center space-y-6">
-                <h2 class="text-xl md:text-2xl font-extrabold text-slate-200">النسبة المئوية لامتيازك المعيشي العالمي</h2>
-                <div class="relative inline-flex items-center justify-center p-1 rounded-full mb-2">
-                    <div class="w-48 h-48 rounded-full border-4 border-slate-800 flex flex-col items-center justify-center bg-slate-950/80 relative z-10">
-                        <span id="final-percentage-display" class="text-5xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-br from-emerald-400 via-teal-200 to-indigo-400">0%</span>
-                        <span class="text-[10px] text-slate-500 font-bold mt-1 tracking-wider">مؤشر الامتنان</span>
-                    </div>
-                    <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-indigo-500/20 rounded-full blur-xl animate-pulse-slow"></div>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-slate-300 text-sm">أنت تعيش بظروف أفضل من:</p>
-                    <p id="final-better-off-display" class="text-3xl md:text-4
