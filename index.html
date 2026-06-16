@@ -1,0 +1,789 @@
+```react
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Shield, 
+  Heart, 
+  DollarSign, 
+  Smile, 
+  Globe, 
+  TrendingUp, 
+  Sparkles, 
+  Share2, 
+  RotateCcw, 
+  Check, 
+  X, 
+  Award, 
+  Lightbulb, 
+  ArrowLeft, 
+  Zap, 
+  BookOpen, 
+  Lock, 
+  Mail 
+} from 'lucide-react';
+
+// === الخصائص والإحصاءات العالمية التقريبية لعام 2026 ===
+// الـ globalHas تعبر عن النسبة المئوية التقديرية للبشر الذين يمتلكون أو يتمتعون بهذه الميزة حالياً.
+const QUESTIONS = [
+  // 1. الأساسيات والبقاء (الوزن: 1.5)
+  { id: 'q1', category: 'survival', text: 'هل يتوفر لديك مياه صالحة للشرب ونظيفة داخل منزلك مباشرة دون عناء؟', globalHas: 74, weight: 1.5, details: 'حوالي 26% من سكان العالم لا يملكون مياهاً صالحة للشرب في منازلهم.' },
+  { id: 'q2', category: 'survival', text: 'هل تناولت وجبتك الأخيرة في موعدها وبشكل كافٍ ودون خوف دائم من الجوع؟', globalHas: 90, weight: 1.5, details: 'يعاني حوالي 10% من سكان العالم (نحو 800 مليون شخص) من نقص التغذية الحاد والجوع المستمر.' },
+  { id: 'q3', category: 'survival', text: 'هل تمتلك أو تستأجر مسكناً آمناً يحميك من تقلبات الطقس القاسية؟', globalHas: 80, weight: 1.4, details: 'يعيش أكثر من 20% من البشر في مساكن عشوائية أو غير ملائمة كلياً.' },
+  { id: 'q4', category: 'survival', text: 'هل تعيش في منطقة آمنة ومستقرة تماماً، بعيداً عن الحروب والنزاعات المسلحة؟', globalHas: 88, weight: 1.5, details: 'يعيش حوالي 12% من سكان الكوكب حالياً في مناطق متأثرة بشكل مباشر بالحروب والصراعات.' },
+  { id: 'q5', category: 'survival', text: 'هل تعيش دون التعرض لأي تهديد مباشر أو اضطهاد مستمر يهدد سلامتك الشخصية؟', globalHas: 85, weight: 1.4, details: 'يتعرض مئات الملايين حول العالم للاضطهاد السياسي أو العرقي أو التهديد الأمني المستمر.' },
+  { id: 'q6', category: 'survival', text: 'هل الطقس والمناخ البيئي الذي تعيش فيه مناسب ومعتدل أغلب العام؟', globalHas: 75, weight: 0.9, details: 'يعيش ربع سكان الأرض في مناطق تعاني من تطرف مناخي شديد أو جفاف حاد مهدد للحياة.' },
+
+  // 2. الصحة والتعليم (الوزن: 1.2)
+  { id: 'q7', category: 'health', text: 'هل تجيد القراءة والكتابة بسلاسة (تلقيت تعليماً أساسياً)؟', globalHas: 87, weight: 1.2, details: 'معدل الأمية العالمي يبلغ حوالي 13% بين البالغين، معظمهم من النساء.' },
+  { id: 'q8', category: 'health', text: 'هل أنت معافى من الأمراض المزمنة الشديدة أو الإعاقات التي تعيقك عن ممارسة حياتك الطبيعية؟', globalHas: 80, weight: 1.2, details: 'يعاني حوالي 20% من البشر من إعاقات جسدية أو أمراض مزمنة تحد من حركتهم وقدراتهم اليومية.' },
+  { id: 'q9', category: 'health', text: 'هل أكملت مرحلة التعليم الثانوي أو ما يعادلها على الأقل؟', globalHas: 50, weight: 1.0, details: 'نصف سكان العالم فقط يحصلون على فرصة لإكمال التعليم الثانوي وما بعده.' },
+  { id: 'q10', category: 'health', text: 'هل يمكنك الوصول بسهولة إلى رعاية صحية جيدة وميسورة التكلفة عند المرض؟', globalHas: 60, weight: 1.2, details: 'أكثر من 40% من البشر يفتقرون كلياً للخدمات الصحية الأساسية دون التعرض لإفلاس مالي.' },
+  { id: 'q11', category: 'health', text: 'هل يتوفر لديك تيار كهربائي مستقر ومستمر دون انقطاع طويل في مسكنك؟', globalHas: 75, weight: 1.1, details: 'رغم تمديد شبكات الكهرباء، يعاني ربع سكان الأرض من انقطاعات مستمرة تعوق الحياة والإنتاج.' },
+
+  // 3. المال والعمل (الوزن: 1.0)
+  { id: 'q12', category: 'finance', text: 'هل لديك عمل مستقر، أو مصدر دخل ثابت (وظيفة، تجارة، عمل حر)؟', globalHas: 60, weight: 1.1, details: 'أكثر من 40% من القوة العاملة العالمية تعمل في القطاع غير الرسمي وبلا أي أمان وظيفي.' },
+  { id: 'q13', category: 'finance', text: 'هل تتلقى دخلاً أو راتباً يكفي لتغطية كامل احتياجاتك الأساسية ويزيد قليلاً؟', globalHas: 50, weight: 1.2, details: 'يعيش نصف سكان العالم تقريباً على أقل من 6.85 دولار يومياً (خط الفقر المتوسط للبنك الدولي).' },
+  { id: 'q14', category: 'finance', text: 'هل تمتلك مدخرات مالية تضمن لك العيش لـ 3 أشهر على الأقل في حال توقف دخلك فجأة؟', globalHas: 35, weight: 1.1, details: 'قرابة 65% من سكان العالم يعيشون يوماً بيوم وبلا أي مدخرات حقيقية لمواجهة الطوارئ.' },
+  { id: 'q15', category: 'finance', text: 'هل تحب مجال عملك أو دراستك الحالية وتشعر بالرضا المهني فيه؟', globalHas: 45, weight: 0.8, details: 'تظهر الاستطلاعات العالمية أن أقل من نصف العاملين يشعرون بالارتباط والشغف تجاه وظائفهم الحالية.' },
+
+  // 4. الحياة الاجتماعية والنفسية (الوزن: 0.8)
+  { id: 'q16', category: 'social', text: 'هل عائلتك أو المقربون منك يعيشون معك أو على تواصل دائم لتقديم الدعم المعنوي والاجتماعي؟', globalHas: 85, weight: 0.9, details: 'يعاني نحو 15% من البشر من العزلة الاجتماعية التامة أو فقدان شبكات الدعم العائلي الأساسية.' },
+  { id: 'q17', category: 'social', text: 'هل تعيش في حي أو مدينة تحبها وتشعر بالانتماء النفسي والراحة فيها؟', globalHas: 65, weight: 0.8, details: 'يضطر الكثيرون للسكن في بيئات لا يرغبونها لأسباب اقتصادية أو قسرية.' },
+  { id: 'q18', category: 'social', text: 'هل تنال قسطاً كافياً ومناسباً من النوم والراحة اليومية دون أرق أو إرهاق مزمن؟', globalHas: 70, weight: 0.8, details: 'يعاني نحو 30% من سكان الأرض من اضطرابات النوم والتوتر النفسي الناتج عن ضغوط المعيشة.' },
+  { id: 'q19', category: 'social', text: 'هل تحصل على عطلة أسبوعية منتظمة تتيح لك الاسترخاء ومزاولة حياتك الشخصية؟', globalHas: 65, weight: 0.8, details: 'يعمل ملايين البشر طوال أيام الأسبوع دون توقف أو إجازات مدفوعة الأجر للبقاء على قيد الحياة.' },
+  { id: 'q20', category: 'social', text: 'هل تشعر بالتفاؤل والأمل الإيجابي تجاه مستقبلك ومستقبل عائلتك القريب؟', globalHas: 55, weight: 0.8, details: 'يسود القلق الاقتصادي والتغيرات العالمية على النظرة المستقبلية لقرابة نصف سكان العالم.' },
+
+  // 5. الرفاهية والحرية (الوزن: 0.6)
+  { id: 'q21', category: 'luxury', text: 'هل لديك وسيلة نقل خاصة (سيارة، دراجة) أو شبكة مواصلات عامة مريحة وسهلة في محيطك؟', globalHas: 70, weight: 0.8, details: 'يواجه حوالي 30% من البشر صعوبات بالغة وهدراً للوقت والجهد في التنقل اليومي لغياب البنية التحتية.' },
+  { id: 'q22', category: 'luxury', text: 'هل تمتلك جواز سفر ساري المفعول في درجك الآن؟', globalHas: 40, weight: 0.9, details: 'أقل من 40% من سكان العالم يمتلكون بالفعل جواز سفر يتيح لهم التفكير في مغادرة البلاد.' },
+  { id: 'q23', category: 'luxury', text: 'هل تسافر دولياً بحرية (أو قادراً مادياً وقانونياً على السفر بغرض الترفيه)؟', globalHas: 25, weight: 0.9, details: 'السفر الدولي الترفيهي ميزة حصرية ومترفة تقتصر على ربع سكان الكوكب فقط.' },
+  { id: 'q24', category: 'luxury', text: 'هل يمكنك ممارسة شعائرك الدينية وقناعاتك الفكرية بحرية كاملة ودون خوف من التضييق؟', globalHas: 65, weight: 1.0, details: 'يعيش حوالي 35% من سكان العالم في دول تفرض قيوداً حكومية أو مجتمعية شديدة على الحرية الدينية والفكرية.' },
+  { id: 'q25', category: 'luxury', text: 'هل لديك اتصال مستقر وسريع بشبكة الإنترنت في منزلك أو عبر هاتفك الذكي؟', globalHas: 67, weight: 1.0, details: 'لا يزال قرابة 33% من سكان العالم (حوالي 2.7 مليار شخص) يفتقرون تماماً للاتصال بالإنترنت.' },
+  { id: 'q26', category: 'luxury', text: 'هل تمتلك هاتفاً ذكياً حديثاً أو جهاز كمبيوتر خاصاً بك؟', globalHas: 70, weight: 0.7, details: 'نحو 30% من سكان الكوكب لا يملكون أجهزة ذكية تمكنهم من ولوج الفضاء المعرفي الحديث.' },
+  { id: 'q27', category: 'luxury', text: 'هل لديك الوقت الكافي والقدرة المالية لممارسة هوايتك المفضلة (رياضة، قراءة، فن، ألعاب)؟', globalHas: 40, weight: 0.7, details: 'تمنع مشاق الحياة اليومية والعمل المرهق الطويل أكثر من 60% من البشر من الاستمتاع بأي هواية ترفيهية.' }
+];
+
+const CATEGORIES = {
+  survival: { title: 'الأساسيات والبقاء', icon: Shield, color: 'from-rose-500 to-red-600', textLight: 'text-rose-400' },
+  health: { title: 'الصحة والتعليم', icon: Heart, color: 'from-emerald-500 to-teal-600', textLight: 'text-emerald-400' },
+  finance: { title: 'المال والعمل', icon: DollarSign, color: 'from-amber-500 to-orange-600', textLight: 'text-amber-400' },
+  social: { title: 'الحياة الاجتماعية والرفاهية النفسية', icon: Smile, color: 'from-indigo-500 to-violet-600', textLight: 'text-indigo-400' },
+  luxury: { title: 'الرفاهية والاتصال والحرية', icon: Globe, color: 'from-purple-500 to-fuchsia-600', textLight: 'text-purple-400' }
+};
+
+// ملفات محاكاة جاهزة (الأوضاع مسبقة الإعداد) لسرعة التجربة والتعلم
+const PRESETS = [
+  {
+    name: 'اللاجئ (منطقة صراع قاسية)',
+    description: 'شخص يعيش في مخيمات النزوح في بيئة تفتقر لأبسط مقومات الأمان والرفاهية المادية.',
+    answers: {
+      q1: false, q2: false, q3: false, q4: false, q5: false, q6: false,
+      q7: true, q8: false, q9: false, q10: false, q11: false,
+      q12: false, q13: false, q14: false, q15: false,
+      q16: true, q17: false, q18: false, q19: false, q20: false,
+      q21: false, q22: false, q23: false, q24: false, q25: false, q26: false, q27: false
+    }
+  },
+  {
+    name: 'المواطن المتوسط (دولة نامية)',
+    description: 'يعيش في بيئة مستقرة أمنياً ولكن يواجه صعوبات اقتصادية وتحديات في السفر والمدخرات والترفيه.',
+    answers: {
+      q1: true, q2: true, q3: true, q4: true, q5: true, q6: true,
+      q7: true, q8: true, q9: true, q10: false, q11: true,
+      q12: true, q13: false, q14: false, q15: true,
+      q16: true, q17: true, q18: true, q19: true, q20: true,
+      q21: true, q22: false, q23: false, q24: true, q25: true, q26: true, q27: false
+    }
+  },
+  {
+    name: 'الموظف الميسور (دولة مستقرة ومتقدمة)',
+    description: 'يتمتع بأعلى درجات الرفاهية الرقمية، الأمان الوظيفي، والحرية الشخصية العالية.',
+    answers: {
+      q1: true, q2: true, q3: true, q4: true, q5: true, q6: true,
+      q7: true, q8: true, q9: true, q10: true, q11: true,
+      q12: true, q13: true, q14: true, q15: true,
+      q16: true, q17: true, q18: true, q19: true, q20: true,
+      q21: true, q22: true, q23: true, q24: true, q25: true, q26: true, q27: true
+    }
+  }
+];
+
+export default function App() {
+  const [screen, setScreen] = useState('intro'); // 'intro' | 'quiz' | 'results'
+  const [answers, setAnswers] = useState({});
+  const [activeCategory, setActiveCategory] = useState('survival');
+  const [copiedNotification, setCopiedNotification] = useState(false);
+  const [presetUsed, setPresetUsed] = useState(null);
+
+  // --- العداد السكاني العالمي اللحظي ---
+  // التعداد التقديري لمنتصف عام 2026 يبدأ من 8,312,456,712 نسمة تقريباً.
+  // معدل الزيادة التقريبي الصافي للبشر هو حوالي 2.62 شخص بالثانية (الولادات مطروحاً منها الوفيات).
+  const [worldPopulation, setWorldPopulation] = useState(8312456712);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // تحديث العداد كل 100 ملي ثانية لضمان حركة سريعة وجذابة
+      setWorldPopulation((prev) => prev + (2.62 * 0.1));
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- خوارزمية الاحتساب الذكية للأوزان والنسب المئوية ---
+  const calculation = useMemo(() => {
+    let userScore = 0;
+    let maxScore = 0;
+
+    QUESTIONS.forEach((q) => {
+      // التناسب طردي مع ندرة الميزة: فكلما قلت نسبة من يمتلكون الميزة عالمياً (globalHas)، كلما جعلت صاحبها متميزاً وبحال أفضل من شريحة أكبر.
+      // ميزة يمتلكها 25% فقط تعني أن عدم امتلاكها يضعك مع الـ 75%. وإذا امتلكتها فأنت أفضل معيشياً في هذا الجانب من 75%.
+      const privilegeScore = (100 - q.globalHas) * q.weight;
+      maxScore += privilegeScore;
+
+      if (answers[q.id] === true) {
+        userScore += privilegeScore;
+      }
+    });
+
+    // حساب النسبة المئوية النهائية
+    let percentage = maxScore > 0 ? (userScore / maxScore) * 100 : 0;
+    
+    // ضبط الهوامش لواقعية الإحصاء (لا يوجد أحد يعيش أفضل من 100% من الكوكب تماماً)
+    if (percentage > 99.9) percentage = 99.9;
+    if (percentage < 0.1 && Object.keys(answers).length > 0) percentage = 0.5;
+
+    // حساب النسبة التقريبية لكل فئة على حدة للمقارنة التفصيلية
+    const categoryStats = Object.keys(CATEGORIES).reduce((acc, catKey) => {
+      const catQuestions = QUESTIONS.filter(q => q.category === catKey);
+      let catUser = 0;
+      let catMax = 0;
+      
+      catQuestions.forEach(q => {
+        const val = (100 - q.globalHas) * q.weight;
+        catMax += val;
+        if (answers[q.id] === true) catUser += val;
+      });
+
+      acc[catKey] = {
+        title: CATEGORIES[catKey].title,
+        percentage: catMax > 0 ? Math.round((catUser / catMax) * 100) : 0,
+        answeredCount: catQuestions.filter(q => answers[q.id] !== undefined).length,
+        totalCount: catQuestions.length
+      };
+      return acc;
+    }, {});
+
+    return {
+      percentage: parseFloat(percentage.toFixed(1)),
+      betterOffPeopleCount: Math.floor(worldPopulation * (percentage / 100)),
+      categoryStats
+    };
+  }, [answers, worldPopulation]);
+
+  // إكمال الفئات والأسئلة تلقائياً عند تغيير الإجابات لمعرفة التقدم العام
+  const totalQuestions = QUESTIONS.length;
+  const answeredQuestionsCount = Object.keys(answers).length;
+  const progressPercent = Math.round((answeredQuestionsCount / totalQuestions) * 100);
+
+  const handleAnswer = (questionId, value) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+    setPresetUsed(null); // إلغاء تفعيل وضع المحاكاة إذا قام المستخدم بالتعديل اليدوي
+  };
+
+  const handleSelectAllInActiveCategory = (value) => {
+    const activeQuestions = QUESTIONS.filter(q => q.category === activeCategory);
+    const updated = { ...answers };
+    activeQuestions.forEach(q => {
+      updated[q.id] = value;
+    });
+    setAnswers(updated);
+    setPresetUsed(null);
+  };
+
+  const handleUsePreset = (preset) => {
+    setAnswers(preset.answers);
+    setPresetUsed(preset.name);
+    setScreen('results');
+  };
+
+  const handleReset = () => {
+    setAnswers({});
+    setScreen('intro');
+    setActiveCategory('survival');
+    setPresetUsed(null);
+  };
+
+  const handleAutoFillRemaining = (value) => {
+    const updated = { ...answers };
+    QUESTIONS.forEach(q => {
+      if (updated[q.id] === undefined) {
+        updated[q.id] = value;
+      }
+    });
+    setAnswers(updated);
+  };
+
+  const handleShare = () => {
+    const textToCopy = `إحصائية مذهلة ومؤثرة! 🌍\nقمت بإجراء اختبار "مقياس الامتنان العالمي" وكانت النتيجة:\nأنا أعيش في ظروف معيشية أفضل من ${calculation.percentage}% من سكان الأرض (أي أفضل من قرابة ${Math.floor(calculation.betterOffPeopleCount).toLocaleString('en-US')} إنسان حي حالياً).\nالحمد لله على النعم غير المرئية. جرب بنفسك الآن!`;
+    
+    // محاكاة النسخ بأمان لبيئة الإطار (iframe)
+    const el = document.createElement('textarea');
+    el.value = textToCopy;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+
+    setCopiedNotification(true);
+    setTimeout(() => setCopiedNotification(false), 3000);
+  };
+
+  // قائمة بأكثر الميزات ندرة التي يمتلكها المستخدم مقارنة بالعالم
+  const userRarePrivileges = useMemo(() => {
+    return QUESTIONS.filter(q => answers[q.id] === true)
+      .sort((a, b) => a.globalHas - b.globalHas)
+      .slice(0, 4);
+  }, [answers]);
+
+  return (
+    <div className="min-h-screen bg-[#05050a] text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-black">
+      {/* خلفية بتأثيرات تدرج شعاعي نيون خافت */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.04),transparent_45%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(99,102,241,0.05),transparent_50%)] pointer-events-none" />
+
+      {/* العداد السكاني العلوي العائم المستمر - تم تغيير الإقليم لـ en-US لضمان الأرقام اللاتينية */}
+      <header className="sticky top-0 z-40 bg-[#05050a]/90 backdrop-blur-md border-b border-slate-900 px-4 py-3">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs text-slate-400 font-mono tracking-wider">مُؤشرات كوكبية حية (2026)</span>
+          </div>
+
+          <div className="flex flex-wrap gap-4 md:gap-8 justify-center text-sm">
+            <div>
+              <span className="text-slate-400 ml-1.5">تعداد البشر التقديري:</span>
+              <span className="font-mono text-emerald-400 font-bold text-base">
+                {Math.floor(worldPopulation).toLocaleString('en-US')}
+              </span>
+            </div>
+
+            {screen === 'results' || answeredQuestionsCount > 0 ? (
+              <div className="animate-fadeIn">
+                <span className="text-slate-400 ml-1.5">أنت تعيش أفضل من:</span>
+                <span className="font-mono text-indigo-400 font-bold text-base">
+                  {Math.floor(calculation.betterOffPeopleCount).toLocaleString('en-US')}
+                </span>
+                <span className="text-xs text-slate-500 mr-1.5 font-semibold">({calculation.percentage}%)</span>
+              </div>
+            ) : (
+              <div className="text-slate-500 italic text-xs">أجب عن الأسئلة لتفعيل عداد الامتنان الشخصي</div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* المحتوى الرئيسي للموقع */}
+      <main className="max-w-5xl mx-auto px-4 py-8 relative">
+        
+        {/* شريط معلومات وسمعة التطبيق */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-200 to-indigo-400 mb-2 leading-normal">
+            مقياس الامتنان والامتياز العالمي
+          </h1>
+          <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+            مبني على خوارزمية توازن الأوزان المعيشية ونسب الإحصاء السكاني من منظمات التنمية العالمية. أين تقع ظروف حياتك الحقيقية بين ثنايا كوكب الأرض؟
+          </p>
+        </div>
+
+        {/* 1. شاشة البداية والمحاكاة */}
+        {screen === 'intro' && (
+          <div className="space-y-8 animate-fadeIn">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl border border-slate-800 p-6 md:p-10 shadow-2xl relative overflow-hidden">
+              <div className="absolute -left-16 -top-16 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -right-16 -bottom-16 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="max-w-3xl mx-auto text-center space-y-6">
+                <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 text-emerald-400 rounded-full mb-2 border border-emerald-500/20">
+                  <Sparkles className="w-8 h-8 animate-pulse" />
+                </div>
+                
+                <h2 className="text-xl md:text-3xl font-bold text-white">هل تساءلت يوماً عن مدى حظك في هذه الدنيا؟</h2>
+                
+                <p className="text-slate-300 text-sm md:text-base leading-relaxed text-right md:text-center">
+                  أغلبنا يركز على ما ينقصه وينسى النعم البديهية التي تمنحه أفضلية مطلقة على ملايين البشر. 
+                  هذا التطبيق البسيط يطرح عليك <span className="text-emerald-400 font-bold">27 سؤالاً دقيقاً</span> تغطي شتى جوانب الحياة: 
+                  <span className="text-rose-400 font-semibold"> الاحتياجات الأساسية</span>، 
+                  <span className="text-emerald-400 font-semibold"> الصحة والتعليم</span>، 
+                  <span className="text-amber-400 font-semibold"> الاستقرار المالي</span>، 
+                  و<span className="text-purple-400 font-semibold"> الرفاهيات الرقمية</span>. 
+                  بنهاية المطاف، سيخبرك التطبيق بالنسبة المئوية الفعلية لمن تعيش أفضل منهم وبما يتطابق مع الإحصاءات الكوكبية الموثقة لعام 2026.
+                </p>
+
+                <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
+                  <button 
+                    onClick={() => setScreen('quiz')}
+                    className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                  >
+                    <Zap className="w-5 h-5 fill-current" />
+                    البدء في الحساب الشخصي
+                  </button>
+
+                  {answeredQuestionsCount > 0 && (
+                    <button 
+                      onClick={() => setScreen('quiz')}
+                      className="px-6 py-4 bg-slate-900 border border-slate-700 hover:bg-slate-850 text-slate-200 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      متابعة الاختبار السابق ({progressPercent}%)
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* قسم المحاكاة السريعة */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-slate-300 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-indigo-400" />
+                تجرِبة سريعة (أنماط حياة جاهزة للمحاكاة والتعلم)
+              </h3>
+              <p className="text-xs text-slate-400">
+                يمكنك الضغط على أي نمط جاهز بالأسفل لتعبئة الاختبار فوراً والاطلاع على نسبته لإجراء مقارنة تعليمية عميقة:
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {PRESETS.map((preset, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={() => handleUsePreset(preset)}
+                    className="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:translate-y-[-2px] flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="text-indigo-400 font-bold text-sm mb-1.5">{preset.name}</div>
+                      <p className="text-xs text-slate-400 leading-relaxed">{preset.description}</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end">
+                      <span className="text-[10px] bg-indigo-500/10 text-indigo-300 px-2 py-1 rounded">استعراض النتيجة ←</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. شاشة الأسئلة والاختبار */}
+        {screen === 'quiz' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fadeIn">
+            
+            {/* القائمة الجانبية للفئات والتقدم - لسطح المكتب */}
+            <div className="lg:col-span-4 space-y-6">
+              <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl space-y-4 sticky top-24">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-bold text-white text-sm">مراحل التقييم</h3>
+                  <span className="text-xs text-slate-400 font-mono">{progressPercent}% مكتمل</span>
+                </div>
+
+                {/* شريط تقدم عام */}
+                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full transition-all duration-500 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  {Object.entries(CATEGORIES).map(([key, cat]) => {
+                    const CatIcon = cat.icon;
+                    const stats = calculation.categoryStats[key];
+                    const isActive = activeCategory === key;
+
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setActiveCategory(key)}
+                        className={`w-full text-right p-3 rounded-xl flex items-center justify-between transition-all duration-300 ${
+                          isActive 
+                            ? 'bg-slate-800 border-r-4 border-emerald-500 text-white' 
+                            : 'bg-slate-950/40 border border-transparent text-slate-400 hover:bg-slate-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg bg-slate-900 ${isActive ? cat.textLight : 'text-slate-500'}`}>
+                            <CatIcon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold">{cat.title}</div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              {stats.answeredCount} من {stats.totalCount} تمت الإجابة
+                            </div>
+                          </div>
+                        </div>
+                        {stats.answeredCount === stats.totalCount && (
+                          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* لوحة المؤشر الفوري المباشر */}
+                <div className="mt-6 pt-5 border-t border-slate-800 text-center space-y-2">
+                  <div className="text-xs text-slate-500">النسبة التقديرية الحالية لمن أنت أفضل منهم:</div>
+                  <div className="text-3xl font-black font-mono text-emerald-400">{calculation.percentage}%</div>
+                  <div className="text-[11px] text-slate-400">
+                    أنت أفضل من قرابة <span className="text-indigo-400 font-bold">{Math.floor(calculation.betterOffPeopleCount).toLocaleString('en-US')}</span> إنسان.
+                  </div>
+                </div>
+
+                {/* أزرار مساعدة جماعية */}
+                <div className="pt-2 grid grid-cols-2 gap-2 text-center">
+                  <button 
+                    onClick={() => handleSelectAllInActiveCategory(true)}
+                    className="p-2 bg-slate-950 hover:bg-slate-900 rounded-lg text-[10px] text-slate-300 border border-slate-800 hover:border-emerald-500/20 transition duration-200"
+                  >
+                    تحديد نعم للكل بالقسم
+                  </button>
+                  <button 
+                    onClick={() => handleSelectAllInActiveCategory(false)}
+                    className="p-2 bg-slate-950 hover:bg-slate-900 rounded-lg text-[10px] text-slate-300 border border-slate-800 hover:border-rose-500/20 transition duration-200"
+                  >
+                    تحديد لا للكل بالقسم
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* قائمة الأسئلة التفاعلية للفئة النشطة */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              {/* ترويسة الفئة الحالية */}
+              <div className={`p-5 rounded-2xl bg-gradient-to-r ${CATEGORIES[activeCategory].color} text-slate-950 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl`}>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    {React.createElement(CATEGORIES[activeCategory].icon, { className: "w-6 h-6 text-slate-950" })}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black">{CATEGORIES[activeCategory].title}</h2>
+                    <p className="text-xs opacity-80 font-medium">أجب بصدق لتعكس واقعك المعيشي الحالي بدقة</p>
+                  </div>
+                </div>
+                
+                <span className="text-xs font-bold bg-white/30 px-3 py-1.5 rounded-full font-mono">
+                  {QUESTIONS.filter(q => q.category === activeCategory).length} أسئلة في هذا القسم
+                </span>
+              </div>
+
+              {/* بطاقات الأسئلة التفصيلية */}
+              <div className="space-y-4">
+                {QUESTIONS.filter(q => q.category === activeCategory).map((q, idx) => {
+                  const isYes = answers[q.id] === true;
+                  const isNo = answers[q.id] === false;
+
+                  return (
+                    <div 
+                      key={q.id}
+                      className={`p-5 rounded-xl border transition-all duration-300 ${
+                        isYes 
+                          ? 'bg-emerald-950/20 border-emerald-500/40 shadow-md shadow-emerald-500/5' 
+                          : isNo 
+                          ? 'bg-rose-950/10 border-rose-500/20' 
+                          : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-2 max-w-lg text-right">
+                          <h4 className="text-sm font-bold text-slate-100 leading-relaxed">
+                            <span className="text-xs font-mono text-slate-500 ml-1">#{idx + 1}</span> {q.text}
+                          </h4>
+                          <p className="text-xs text-slate-400 leading-normal flex items-center gap-1.5">
+                            <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <span>{q.details}</span>
+                          </p>
+                        </div>
+
+                        {/* خيارات الإجابة */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => handleAnswer(q.id, true)}
+                            className={`px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-1.5 ${
+                              isYes 
+                                ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/10' 
+                                : 'bg-slate-950 text-slate-400 hover:bg-slate-900 border border-slate-800'
+                            }`}
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            نعم
+                          </button>
+
+                          <button
+                            onClick={() => handleAnswer(q.id, false)}
+                            className={`px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-1.5 ${
+                              isNo 
+                                ? 'bg-rose-500 text-slate-950 shadow-lg shadow-rose-500/10' 
+                                : 'bg-slate-950 text-slate-400 hover:bg-slate-900 border border-slate-800'
+                            }`}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            لا
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* أزرار التحكم السفلى */}
+              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-900">
+                <button
+                  onClick={() => setScreen('intro')}
+                  className="px-5 py-3 bg-slate-900 hover:bg-slate-850 text-slate-300 text-xs font-semibold rounded-xl transition duration-200 flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  رجوع للرئيسية
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {/* ملء الأسئلة الفارغة بـ "لا" للسرعة */}
+                  {isUnansweredCountPresent() && (
+                    <button
+                      onClick={() => handleAutoFillRemaining(false)}
+                      className="px-4 py-3 bg-slate-950 hover:bg-slate-900 text-slate-400 border border-slate-850 text-xs font-medium rounded-xl transition duration-200"
+                      title="يعتبر الأسئلة المتبقية كلها 'لا' لاختصار الوقت"
+                    >
+                      اعتبار المتبقي "لا" وحساب
+                    </button>
+                  )}
+
+                  {isAllAnswered() ? (
+                    <button
+                      onClick={() => setScreen('results')}
+                      className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg shadow-emerald-500/10 transition duration-200 flex items-center gap-1.5"
+                    >
+                      عرض التقرير الإحصائي النهائي
+                      <Sparkles className="w-4 h-4 fill-current" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setScreen('results')}
+                      className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition duration-200"
+                    >
+                      تخطي وعرض النتيجة الحالية ({answeredQuestionsCount}/{totalQuestions})
+                    </button>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* 3. شاشة التقرير والنتائج الإحصائية الفاخرة */}
+        {screen === 'results' && (
+          <div className="space-y-8 animate-fadeIn">
+            
+            {/* بطاقة النتيجة الكبرى الدائرية */}
+            <div className="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden text-center space-y-6">
+              
+              {/* شارة محاكاة نمط مسبق في حال استخدامه */}
+              {presetUsed && (
+                <div className="inline-block px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-full text-xs font-semibold mb-4">
+                  وضع المحاكاة النشط: {presetUsed}
+                </div>
+              )}
+
+              <div className="max-w-xl mx-auto space-y-4">
+                <h2 className="text-xl md:text-2xl font-extrabold text-slate-200">النسبة المئوية لامتيازك المعيشي العالمي</h2>
+                
+                {/* الرسم الدائري الكبير للنسبة */}
+                <div className="relative inline-flex items-center justify-center p-1 rounded-full mb-2">
+                  <div className="w-48 h-48 rounded-full border-4 border-slate-800 flex flex-col items-center justify-center bg-slate-950/80 shadow-inner relative z-10">
+                    <span className="text-5xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-br from-emerald-400 via-teal-200 to-indigo-400">
+                      {calculation.percentage}%
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-bold mt-1 tracking-wider">مؤشر الامتنان</span>
+                  </div>
+                  {/* توهج خلفي */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-indigo-500/20 rounded-full blur-xl animate-pulse" />
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-slate-300 text-sm md:text-base">
+                    بناءً على الأوزان الرياضية لإجاباتك، أنت تعيش بظروف أفضل من:
+                  </p>
+                  <p className="text-3xl md:text-4xl font-black text-emerald-400 font-mono tracking-tight py-2 animate-pulse">
+                    {Math.floor(calculation.betterOffPeopleCount).toLocaleString('en-US')}
+                  </p>
+                  <p className="text-xs text-indigo-400 font-semibold">
+                    إنسان حي على الكوكب في هذه اللحظة، من أصل {Math.floor(worldPopulation).toLocaleString('en-US')} نسمة.
+                  </p>
+                </div>
+
+                <p className="text-xs text-slate-500 italic leading-relaxed pt-2">
+                  * يتغير هذا العداد لحظياً بشكل حي تبعاً لمتوسط النمو السكاني العالمي والنسبة المئوية المستخرجة من إجاباتك.
+                </p>
+              </div>
+
+              {/* أزرار الإجراءات */}
+              <div className="pt-4 flex flex-wrap gap-4 justify-center">
+                <button
+                  onClick={handleShare}
+                  className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <Share2 className="w-4 h-4 fill-current" />
+                  انسخ النتيجة وشاركها كرسالة مؤثرة
+                </button>
+
+                <button
+                  onClick={handleReset}
+                  className="px-6 py-3.5 bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 text-sm font-semibold rounded-xl transition duration-200 flex items-center justify-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  إعادة تعيين وبدء اختبار جديد
+                </button>
+              </div>
+
+              {copiedNotification && (
+                <div className="p-3 bg-slate-900 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-semibold inline-flex items-center gap-2 mx-auto animate-fadeIn">
+                  <Check className="w-4 h-4" />
+                  تم نسخ الملخص الإحصائي إلى الحافظة بنجاح! جاهز للمشاركة الآن.
+                </div>
+              )}
+            </div>
+
+            {/* لوحة المقارنة بالفئات والنسب العالمية */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* التقييم حسب الأقسام الخمسة */}
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="text-base font-bold text-slate-200 flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-indigo-400" />
+                  تحليل جودة المعيشة حسب الفئات
+                </h3>
+                
+                <div className="space-y-4">
+                  {Object.entries(calculation.categoryStats).map(([key, stat]) => {
+                    const cat = CATEGORIES[key];
+                    return (
+                      <div key={key} className="space-y-1.5">
+                        <div className="flex justify-between text-xs font-bold">
+                          <span className="text-slate-300">{cat.title}</span>
+                          <span className={`${cat.textLight} font-mono`}>{stat.percentage}% امتياز</span>
+                        </div>
+                        {/* بار التقدم */}
+                        <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-850">
+                          <div 
+                            className={`bg-gradient-to-r ${cat.color} h-full rounded-full transition-all duration-1000`}
+                            style={{ width: `${stat.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* بطاقة الامتيازات النادرة لدى المستخدم */}
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="text-base font-bold text-slate-200 flex items-center gap-2 mb-2">
+                  <Award className="w-5 h-5 text-amber-400" />
+                  امتيازات نادرة تتمتع بها حالياً!
+                </h3>
+
+                {userRarePrivileges.length > 0 ? (
+                  <div className="space-y-3">
+                    <p className="text-xs text-slate-400 leading-normal">
+                      بناءً على إجاباتك بنعم، إليك أندر الحقوق والرفاهيات التي تتميز بها عن الأغلبية الساحقة من البشر:
+                    </p>
+                    <div className="space-y-2">
+                      {userRarePrivileges.map(q => (
+                        <div key={q.id} className="p-3 bg-slate-950/60 border border-slate-850 rounded-lg flex items-start gap-2.5">
+                          <span className="p-1 bg-amber-500/10 text-amber-400 rounded text-xs font-black shrink-0">
+                            %{100 - q.globalHas} ندرة
+                          </span>
+                          <div>
+                            <div className="text-xs font-bold text-slate-200">{q.text}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">يحرم منه حوالي {100 - q.globalHas}% من سكان الأرض.</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-slate-400 text-xs text-center py-6">
+                    لم تحدد أي نعم في ميزات الرفاهية والحرية أو المدخرات المادية حتى الآن. 
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* بطاقة تأملية ونداء إنساني بالامتنان */}
+            <div className="bg-gradient-to-r from-indigo-950/30 via-slate-900/80 to-indigo-950/30 border border-slate-800 p-6 md:p-8 rounded-2xl text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 text-slate-800 pointer-events-none opacity-20">
+                <Lock className="w-24 h-24" />
+              </div>
+
+              <div className="max-w-2xl mx-auto space-y-4 relative z-10">
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-indigo-300">
+                  تأمل وامتنان: الحقيقة المستترة وراء شاشتك
+                </h3>
+                
+                <p className="text-slate-300 text-xs md:text-sm leading-relaxed text-right md:text-center">
+                  مجرد امتلاكك لجهاز ذكي (لابتوب أو هاتف) متصل بشبكة إنترنت مستقرة وسريعة لقراءة هذه الكلمات باللغة العربية، فهذا يضعك تلقائياً ضمن قائمة الثلث الأكثر تميزاً على سطح هذا الكوكب. 
+                  عالمياً، يمضي مئات الملايين من البشر أيامهم بحثاً عن مياه صالحة أو هرباً من رصاص الطوارئ، بينما نتأرق نحن من عدم سرعة اتصالنا أو رفاهيات عملنا اليومي.
+                </p>
+
+                <p className="text-xs text-amber-400 font-bold">
+                  «الحمد لله على النعم التي نعتد عليها فننسى شكرها.»
+                </p>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* تذييل الصفحة مع حقوق التطبيق وتوقيع زكريا شلوفي */}
+        <footer className="mt-16 pt-8 border-t border-slate-950 text-center space-y-4">
+          <div className="space-y-1">
+            <p className="text-xs text-slate-600">
+              تم تطوير هذا المحاكي الإنساني ليكون تذكيراً بالامتنان والمسؤولية الاجتماعية.
+            </p>
+            <p className="text-[10px] text-slate-700">
+              البيانات مبنية على تقديرات تقريبية مستخلصة من إحصاءات البنك الدولي، اليونسكو، والأمم المتحدة لغرض المحاكاة التعليمية والتأمل والتوعية.
+            </p>
+          </div>
+
+          {/* التوقيع الخاص بزكريا شلوفي */}
+          <div className="bg-slate-900/30 border border-slate-900/80 p-4 rounded-xl max-w-sm mx-auto space-y-2 animate-fadeIn">
+            <p className="text-xs text-slate-400 font-medium">
+              تم إنشاؤه من طرف: <span className="text-emerald-400 font-extrabold text-sm block sm:inline">زكريا شلوفي</span>
+            </p>
+            <div className="flex items-center justify-center gap-1.5 text-xs text-indigo-400 font-mono">
+              <Mail className="w-3.5 h-3.5 text-indigo-500" />
+              <a href="mailto:Zakaria.cheloufi@gmail.com" className="hover:underline hover:text-indigo-300 transition duration-200">
+                Zakaria.cheloufi@gmail.com
+              </a>
+            </div>
+          </div>
+        </footer>
+
+      </main>
+    </div>
+  );
+
+  // دوال مساعدة لتقييم تقدم الاختبار
+  function isAllAnswered() {
+    return answeredQuestionsCount === totalQuestions;
+  }
+
+  function isUnansweredCountPresent() {
+    return answeredQuestionsCount < totalQuestions;
+  }
+}
+
+```
