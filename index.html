@@ -4,25 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Gratitude Scale</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js" crossorigin></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;750;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap');
         body {
             font-family: 'Cairo', sans-serif;
+            background-color: #05050a;
         }
     </style>
 </head>
-<body class="bg-[#05050a] text-slate-100 min-h-screen relative overflow-x-hidden">
+<body class="text-slate-100 min-h-screen relative overflow-x-hidden">
 
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
         
-        // مكون داخلي مستقل تماماً لعرض الأيقونات لضمان عدم الاعتماد على سيرفر خارجي
+        // مكون داخلي صلب ومستقل تماماً للأيقونات لمنع أي انهيار برمي
         function SvgIcon({ name, className = "w-5 h-5" }) {
           const paths = {
             Shield: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />,
@@ -40,4 +41,36 @@
             Lightbulb: <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-3m0 0a5 5 0 10-.001-10.001A5 5 0 0012 15zm0 3a2.25 2.25 0 01-2.25-2.25h4.5A2.25 2.25 0 0112 21z" />,
             ArrowLeft: <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />,
             Zap: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />,
-            BookOpen: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18
+            BookOpen: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />,
+            Lock: <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />,
+            Mail: <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75" />
+          };
+          return (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+              {paths[name] || null}
+            </svg>
+          );
+        }
+
+        const QUESTIONS = [
+          { id: 'q1', category: 'survival', text: 'هل يتوفر لديك مياه صالحة للشرب ونظيفة داخل منزلك مباشرة دون عناء؟', globalHas: 74, weight: 1.5, details: 'حوالي 26% من سكان العالم لا يملكون مياهاً صالحة للشرب في منازلهم.' },
+          { id: 'q2', category: 'survival', text: 'هل تناولت وجبتك الأخيرة في موعدها وبشكل كافٍ ودون خوف دائم من الجوع؟', globalHas: 90, weight: 1.5, details: 'يعاني حوالي 10% من سكان العالم (نحو 800 مليون شخص) من نقص التغذية الحاد والجوع المستمر.' },
+          { id: 'q3', category: 'survival', text: 'هل تمتلك أو تستأجر مسكناً آمناً يحميك من تقلبات الطقس القاسية؟', globalHas: 80, weight: 1.4, details: 'يعيش أكثر من 20% من البشر في مساكن عشوائية أو غير ملائمة كلياً.' },
+          { id: 'q4', category: 'survival', text: 'هل تعيش في منطقة آمنة ومستقرة تماماً، بعيداً عن الحروب والنزاعات المسلحة؟', globalHas: 88, weight: 1.5, details: 'يعيش حوالي 12% من سكان الكوكب حالياً في مناطق متأثرة بشكل مباشر بالحروب والصراعات.' },
+          { id: 'q5', category: 'survival', text: 'هل تعيش دون التعرض لأي تهديد مباشر أو اضطهاد مستمر يهدد سلامتك الشخصية؟', globalHas: 85, weight: 1.4, details: 'يتعرض مئات الملايين حول العالم للاضطهاد السياسي أو العرقي أو التهديد الأمني المستمر.' },
+          { id: 'q6', category: 'survival', text: 'هل الطقس والمناخ البيئي الذي تعيش فيه مناسب ومعتدل أغلب العام؟', globalHas: 75, weight: 0.9, details: 'يعيش ربع سكان الأرض في مناطق تعاني من تطرف مناخي شديد أو جفاف حاد مهدد للحياة.' },
+          { id: 'q7', category: 'health', text: 'هل تجيد القراءة والكتابة بسلاسة (تلقيت تعليماً أساسياً)؟', globalHas: 87, weight: 1.2, details: 'معدل الأمية العالمي يبلغ حوالي 13% بين البالغين، معظمهم من النساء.' },
+          { id: 'q8', category: 'health', text: 'هل أنت معافى من الأمراض المزمنة الشديدة أو الإعاقات التي تعيقك عن ممارسة حياتك الطبيعية؟', globalHas: 80, weight: 1.2, details: 'يعاني حوالي 20% من البشر من إعاقات جسدية أو أمراض مزمنة تحد من حركتهم وقدراتهم اليومية.' },
+          { id: 'q9', category: 'health', text: 'هل أكملت مرحلة التعليم الثانوي أو ما يعادلها على الأقل؟', globalHas: 50, weight: 1.0, details: 'نصف سكان العالم فقط يحصلون على فرصة لإكمال التعليم الثانوي وما بعده.' },
+          { id: 'q10', category: 'health', text: 'هل يمكنك الوصول بسهولة إلى رعاية صحية جيدة وميسورة التكلفة عند المرض؟', globalHas: 60, weight: 1.2, details: 'أكثر من 40% من البشر يفتقرون كلياً للخدمات الصحية الأساسية دون التعرض لإفلاس مالي.' },
+          { id: 'q11', category: 'health', text: 'هل يتوفر لديك تيار كهربائي مستقر ومستمر دون انقطاع طويل في مسكنك؟', globalHas: 75, weight: 1.1, details: 'رغم تمديد شبكات الكهرباء، يعاني ربع سكان الأرض من انقطاعات مستمرة تعوق الحياة والإنتاج.' },
+          { id: 'q12', category: 'finance', text: 'هل لديك عمل مستقر، أو مصدر دخل ثابت (وظيفة، تجارة، عمل حر)؟', globalHas: 60, weight: 1.1, details: 'أكثر من 40% من القوة العاملة العالمية تعمل في القطاع غير الرسمي وبلا أي أمان وظيفي.' },
+          { id: 'q13', category: 'finance', text: 'هل تتلقى دخلاً أو راتباً يكفي لتغطية كامل احتياجاتك الأساسية ويزيد قليلاً؟', globalHas: 50, weight: 1.2, details: 'يعيش نصف سكان العالم تقريباً على أقل من 6.85 دولار يومياً (خط الفقر المتوسط للبنك الدولي).' },
+          { id: 'q14', category: 'finance', text: 'هل تمتلك مدخرات مالية تضمن لك العيش لـ 3 أشهر على الأقل في حال توقف دخلك فجأة؟', globalHas: 35, weight: 1.1, details: 'قرابة 65% من سكان العالم يعيشون يوماً بيوم وبلا أي مدخرات حقيقية لمواجهة الطوارئ.' },
+          { id: 'q15', category: 'finance', text: 'هل تحب مجال عملك أو دراستك الحالية وتشعر بالرضا المهني فيه؟', globalHas: 45, weight: 0.8, details: 'تظهر الاستطلاعات العالمية أن أقل من نصف العاملين يشعرون بالارتباط والشغف تجاه وظائفهم الحالية.' },
+          { id: 'q16', category: 'social', text: 'هل عائلتك أو المقربون منك يعيشون معك أو على تواصل دائم لتقديم الدعم المعنوي والاجتماعي؟', globalHas: 85, weight: 0.9, details: 'يعاني نحو 15% من البشر من العزلة الاجتماعية التامة أو فقدان شبكات الدعم العائلي الأساسية.' },
+          { id: 'q17', category: 'social', text: 'هل تعيش في حي أو مدينة تحبها وتشعر بالانتماء النفسي والراحة فيها؟', globalHas: 65, weight: 0.8, details: 'يضطر الكثيرون للسكن في بيئات لا يرغبونها لأسباب اقتصادية أو قسرية.' },
+          { id: 'q18', category: 'social', text: 'هل تنال قسطاً كافياً ومناسباً من النوم والراحة اليومية دون أرق أو إرهاق مزمن؟', globalHas: 70, weight: 0.8, details: 'يعاني نحو 30% من سكان الأرض من اضطرابات النوم والتوتر النفسي الناتج عن ضغوط المعيشة.' },
+          { id: 'q19', category: 'social', text: 'هل تحصل على عطلة أسبوعية منتظمة تتيح لك الاسترخاء ومزاولة حياتك الشخصية؟', globalHas: 65, weight: 0.8, details: 'يعمل ملايين البشر طوال أيام الأسبوع دون توقف أو إجازات مدفوعة الأجر للبقاء على قيد الحياة.' },
+          { id: 'q20', category: 'social', text: 'هل تشعر بالتفاؤل والأمل الإيجابي تجاه مستقبلك ومستقبل عائلتك القريب؟', globalHas: 55, weight: 0.8, details: 'يسود القلق الاقتصادي والتغيرات العالمية على النظرة المستقبلية لقرابة نصف سكان العالم.' },
+          { id: 'q21', category: 'luxury', text: 'هل لديك وسيلة
