@@ -59,7 +59,7 @@
                 </div>
                 <h2 class="text-xl md:text-3xl font-bold text-white">هل تساءلت يوماً عن مدى حظك في هذه الدنيا؟</h2>
                 <p class="text-slate-300 text-sm md:text-base leading-relaxed text-right md:text-center">
-                    أغلبنا يركز على ما ينقصه وينسى النعم البديهية التي تمنحه أفضلية مطلقة على ملايين البشر. هذا التطبيق يطرح عليك <span class="text-emerald-400 font-bold">27 سؤالاً دقيقاً</span> يعكس واقع المعيشة العالمي بالأرقام اللاتينية لعام 2026.
+                    أغلبنا يركز على ما ينقصه وينسى النعم البديهية التي تمنحه أفضلية مطلقة على ملايين البشر. هذا التطبيق يطرح عليك <span class="text-emerald-400 font-bold">27 سؤالاً دقيقاً</span> يعكس واقع المعيشة العالمي <span class="text-teal-400 font-bold">بالأرقام والإحصائيات</span> لعام 2026.
                 </p>
                 <div class="pt-4 flex justify-center">
                     <button onclick="changeScreen('quiz')" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center gap-2 cursor-pointer">
@@ -123,7 +123,7 @@
                     <button onclick="changeScreen('intro')" class="px-5 py-3 bg-slate-900 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer">← الرئيسية</button>
                     <div class="flex gap-2">
                         <button onclick="autoFillRemainingNo()" class="px-4 py-3 bg-slate-950 text-slate-400 border border-slate-850 text-xs rounded-xl cursor-pointer">اعتبار المتبقي "لا"</button>
-                        <button onclick="changeScreen('results')" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-indigo-600 text-slate-950 font-extrabold text-sm rounded-xl cursor-pointer">عرض التقرير النهائي 🚀</button>
+                        <button id="btn-next-action" onclick="goToNextCategoryOrResults()" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-sm rounded-xl cursor-pointer shadow-lg transition duration-300">القسم التالي ←</button>
                     </div>
                 </div>
             </div>
@@ -132,13 +132,19 @@
         <div id="screen-results" class="hidden space-y-8">
             <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 md:p-10 text-center space-y-6">
                 <h2 class="text-xl md:text-2xl font-extrabold text-slate-200">النسبة المئوية لامتيازك المعيشي العالمي</h2>
+                
                 <div class="relative inline-flex items-center justify-center p-1 rounded-full mb-2">
-                    <div class="w-48 h-48 rounded-full border-4 border-slate-800 flex flex-col items-center justify-center bg-slate-950/80 relative z-10">
-                        <span id="final-percentage-display" class="text-5xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-br from-emerald-400 via-teal-200 to-indigo-400">0%</span>
-                        <span class="text-[10px] text-slate-500 font-bold mt-1 tracking-wider">مؤشر الامتنان</span>
+                    <div class="w-48 h-48 rounded-full border-4 border-slate-800 flex flex-col items-center justify-center bg-slate-950/90 relative overflow-hidden z-10 shadow-[0_0_25px_rgba(16,185,129,0.1)]">
+                        <div id="liquid-fluid-fill" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-600/40 via-teal-500/30 to-indigo-500/20 transition-all duration-1000 ease-out" style="height: 0%;"></div>
+                        
+                        <div class="relative z-20 flex flex-col items-center justify-center">
+                            <span id="final-percentage-display" class="text-5xl font-black font-mono text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">0%</span>
+                            <span class="text-[10px] text-slate-300 font-bold mt-1 tracking-wider drop-shadow">مؤشر الامتنان</span>
+                        </div>
                     </div>
-                    <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-indigo-500/20 rounded-full blur-xl opacity-60"></div>
+                    <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-indigo-500/10 rounded-full blur-xl opacity-60"></div>
                 </div>
+
                 <div class="space-y-1">
                     <p class="text-slate-300 text-sm">أنت تعيش بظروف أفضل من:</p>
                     <p id="final-better-off-display" class="text-3xl md:text-4xl font-black text-emerald-400 font-mono py-2">0</p>
@@ -178,7 +184,6 @@
     </main>
 
     <script>
-        // مصفوفة البيانات الأساسية
         var QUESTIONS = [
           { id: 'q1', category: 'survival', text: 'هل يتوفر لديك مياه صالحة للشرب ونظيفة داخل منزلك مباشرة دون عناء؟', globalHas: 74, weight: 1.5, details: 'حوالي 26% من سكان العالم لا يملكون مياهاً صالحة للشرب في منازلهم.' },
           { id: 'q2', category: 'survival', text: 'هل تناولت وجبتك الأخيرة في موعدها وبشكل كافٍ ودون خوف دائم من الجوع؟', globalHas: 90, weight: 1.5, details: 'يعاني حوالي 10% من سكان العالم من نقص التغذية الحاد.' },
@@ -203,7 +208,7 @@
           { id: 'q21', category: 'luxury', text: 'هل لديك وسيلة نقل خاصة (سيارة، دراجة) أو مواصلات عامة مريحة في محيطك؟', globalHas: 70, weight: 0.8, details: 'يواجه حوالي 30% من البشر صعوبات بالغة وهدراً للوقت في التنقل.' },
           { id: 'q22', category: 'luxury', text: 'هل تمتلك جواز سفر ساري المفعول في درجك الآن؟', globalHas: 40, weight: 0.9, details: 'أقل من 40% من سكان العالم يمتلكون بالفعل جواز سفر.' },
           { id: 'q23', category: 'luxury', text: 'هل تسافر دولياً بحرية (أو قادراً مادياً وقانونياً على السفر للترفيه)؟', globalHas: 25, weight: 0.9, details: 'السفر الدولي الترفيهي ميزة حصرية تقتصر على ربع سكان الكوكب فقط.' },
-          { id: 'q24', category: 'luxury', text: 'هل يمكنك ممارسة شعائرك الدينية وقناعاتك الفكرية بحرية كاملة ودون خوف؟', globalHas: 65, weight: 1.0, details: 'يعيش حوالي 35% من سكان العالم في دول تفرض قيوداً على الحرية الدينية.' },
+          { id: 'q24', category: 'luxury', text: 'هل يمكنك ممارسة شعائرك الدينية وقناعاتك الفكرية بحرية كاملة دون خوف؟', globalHas: 65, weight: 1.0, details: 'يعيش حوالي 35% من سكان العالم في دول تفرض قيوداً على الحرية الدينية.' },
           { id: 'q25', category: 'luxury', text: 'هل لديك اتصال مستقر وسريع بشبكة الإنترنت في منزلك أو عبر هاتفك؟', globalHas: 67, weight: 1.0, details: 'لا يزال قرابة 33% من سكان العالم يفتقرون تماماً للاتصال بالإنترنت.' },
           { id: 'q26', category: 'luxury', text: 'هل تمتلك هاتفاً ذكياً حديثاً أو جهاز كمبيوتر خاصاً بك؟', globalHas: 70, weight: 0.7, details: 'نحو 30% من سكان الكوكب لا يملكون أجهزة ذكية.' },
           { id: 'q27', category: 'luxury', text: 'هل لديك الوقت الكافي والقدرة المالية لممارسة هوايتك المفضلة؟', globalHas: 40, weight: 0.7, details: 'تمنع مشاق الحياة اليومية أكثر من 60% من البشر من الاستمتاع بأي هواية.' }
@@ -230,7 +235,7 @@
             worldPopulation: 8312456712
         };
 
-        // العداد السكاني اللحظي الآمن والمحمي كلياً ضد الانهيارات البرمجية
+        // العداد السكاني الحي المحمي بالأرقام اللاتينية
         setInterval(function() {
             try {
                 appState.worldPopulation += 0.262;
@@ -254,12 +259,9 @@
                     var fBetter = document.getElementById('final-better-off-display');
                     if (fBetter) fBetter.innerText = betterOff.toLocaleString('en-US');
                 }
-            } catch (e) {
-                console.log("Counter update paused temporarily...");
-            }
+            } catch (e) {}
         }, 100);
 
-        // دالة التنقل بين الشاشات
         function changeScreen(screenName) {
             appState.currentScreen = screenName;
             document.getElementById('screen-intro').classList.add('hidden');
@@ -285,6 +287,38 @@
             renderCategoryButtons();
             renderQuestions();
             updateProgressBar();
+        }
+
+        // دالة الانتقال للقسم التالي تلقائياً وصعود شاشة العرض للأعلى بسلاسة
+        function goToNextCategoryOrResults() {
+            var keys = Object.keys(CATEGORIES);
+            var currentIndex = keys.indexOf(appState.activeCategory);
+            
+            if (currentIndex < keys.length - 1) {
+                appState.activeCategory = keys[currentIndex + 1];
+                renderCategoryButtons();
+                renderQuestions();
+                updateProgressBar();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                changeScreen('results');
+            }
+        }
+
+        // تحديث نص وزر التحكم السفلي بناءً على موقع المستخدم في التقييم
+        function updateNextActionContainer() {
+            var btn = document.getElementById('btn-next-action');
+            if (!btn) return;
+            var keys = Object.keys(CATEGORIES);
+            var currentIndex = keys.indexOf(appState.activeCategory);
+            
+            if (currentIndex === keys.length - 1) {
+                btn.innerText = "عرض التقرير النهائي 🚀";
+                btn.className = "px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-sm rounded-xl cursor-pointer shadow-lg shadow-emerald-500/20 transition duration-300";
+            } else {
+                btn.innerText = "القسم التالي ←";
+                btn.className = "px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-sm rounded-xl cursor-pointer shadow-lg shadow-indigo-500/20 transition duration-300";
+            }
         }
 
         function bulkAnswerActiveCategory(val) {
@@ -407,11 +441,15 @@
                 `;
                 container.appendChild(card);
             });
+            updateNextActionContainer();
         }
 
         function renderResultsReport() {
             var metrics = calculateMetrics();
+            
+            // تحديث النسبة وتأثير ملء البلورة السائلة من الأسفل للأعلى
             document.getElementById('final-percentage-display').innerText = metrics.percentage + '%';
+            document.getElementById('liquid-fluid-fill').style.height = metrics.percentage + '%';
             
             var barsContainer = document.getElementById('category-bars-results');
             if (barsContainer) {
